@@ -17,6 +17,10 @@ struct Tile {
     Tile() = default;
 
     Tile(Terrain terrain, int owner, int unit): terrain(terrain), owner(owner), unit(unit) {}
+
+    bool isNeutral() const {
+        return owner == NEUTRAL;
+    }
 };
 
 // 地图坐标 0-index
@@ -30,11 +34,21 @@ public:
 
     Tile& at(int x, int y); //返回该格的引用
 
+    Tile& at(const Point &p);
+
     Tile get(int x, int y) const; //返回该格的值
+
+    Tile get(const Point &p) const;
 
     void set(int x, int y, const Tile &tile); //设置该格的值
 
+    void set(const Point &p, const Tile &tile);
+
     bool isInside(int x, int y) const; // 判断坐标是否在地图内
+
+    bool isInside(const Point &p) const;
+
+    Tile* operator[](int x);
 };
 
 }

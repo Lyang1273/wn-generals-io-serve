@@ -24,14 +24,14 @@ enum class VisibleTerrain : uint8_t {
     Capital,
     City,
     FogBlank,
-    FogMoutain,
+    FogMountain,
     Count
 };
 
 // 坐标
 struct Point {
-    int x;
-    int y;
+    int x = 0;
+    int y = 0;
 
     Point(int x, int y): x(x), y(y) {}
 
@@ -41,6 +41,14 @@ struct Point {
 
     bool operator != (const Point &o) const {
         return !(*this == o);
+    }
+
+    Point operator + (const Point &o) const {
+        return Point(x + o.x, y + o.y);
+    }
+
+    Point operator - (const Point &o) const {
+        return Point(x - o.x, y - o.y);
     }
 };
 
