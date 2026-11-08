@@ -26,13 +26,14 @@ void Rule::applyMove(GameMap &map, PlayerRegistry &playerRegistry, const MoveOpe
 
     if(playerRegistry.isSameTeam(sourceTile.owner, destTile.owner)) {
         // 同一队伍
+        int originDestUnit = destTile.unit; // 没有修改前目标兵力
         destTile.unit += moveUnits; // 增加目标位置的兵力
         sourceTile.unit -= moveUnits; // 减少源位置的兵力
         if(destTile.terrain != Terrain::Capital) {
             // 不为首都则所有者变为源位置所有者
-            playerRegistry.updatePlayerState(destTile.owner, -destTile.unit, -1);
+            playerRegistry.updatePlayerState(destTile.owner, -originDestUnit, -1);
             destTile.owner = sourceTile.owner;
-            playerRegistry.updatePlayerState(sourceTile.owner, destTile.unit, 1);
+            playerRegistry.updatePlayerState(sourceTile.owner, originDestUnit, 1);
         }
     }
     else {
@@ -73,7 +74,8 @@ void Rule::beatPlayer(GameMap &map, PlayerRegistry &playerRegistry, int defeaten
         if(tile.owner == defeatenID) {
             tile.owner = sourceID; // 转换所有者
             if(tile.terrain != Terrain::Capital) {
-                tile.unit /= 2; // 非首都保留一半
+                // 非首都保留一半加一
+                tile.unit = tile.unit / 2 + 1;
             }
             sumDeltaUnits += tile.unit;
             ++ sumDeltaTiles;
