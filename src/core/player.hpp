@@ -22,6 +22,7 @@ struct Player {
 
 struct Team {
     int teamID = 0;
+    int alivePlayers = 0;
     bool alive = true; // 队伍存活状态
     int units = 0; // 队伍总兵力数量
     int tiles = 0; // 队伍总占领地块数量
@@ -63,6 +64,8 @@ public:
     Team* atTeam(int teamID) const; // 获得该小队
 
     void updatePlayerState(int playerID, int deltaUnits, int deltaTiles); // 更新玩家状态 加上或减去 units tiles 用正负号区分
+
+    void markNotAlive(int playerID); // 标记不存话 同时清空玩家数据
 };
 
 }

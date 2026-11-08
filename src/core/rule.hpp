@@ -24,6 +24,10 @@ public:
     static void applyMove(GameMap &map, PlayerRegistry &playerRegistry, const MoveOperation &op); // 执行移动操作
 
     static void occupy(GameMap &map, PlayerRegistry &playerRegistry, Tile &destTile, int sourceID, int moveUnits); // 占领某个地块
+
+    static void beatPlayer(GameMap &map, PlayerRegistry &playerRegistry, int sourceID, int defeatenID); // 击败玩家
+
+    static void 
 };
 
 // 将方向转换为坐标偏移量 

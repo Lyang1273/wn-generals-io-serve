@@ -20,6 +20,7 @@ void PlayerRegistry::registerPlayer(int playerID, int teamID) {
     for(auto &team : teams) {
         if(team->teamID == teamID) {
             team->players.push_back(playerID);
+            ++ team->alivePlayers;
             players.push_back(move(player));
             hasTeam = true;
             break;
@@ -28,6 +29,7 @@ void PlayerRegistry::registerPlayer(int playerID, int teamID) {
     if(!hasTeam) {
         ++ teamCount;
         unique_ptr<Team> team = make_unique<Team>(teamID);
+        team->alivePlayers = 1;
         team->players.push_back(playerID);
         teams.push_back(move(team));
         players.push_back(move(player));
@@ -90,10 +92,23 @@ Team* PlayerRegistry::atTeam(int teamID) const {
 void PlayerRegistry::updatePlayerState(int playerID, int deltaUnits, int deltaTiles) {
     Player* player = atPlayer(playerID);
     Team* team = atTeam(player->teamID);
+    assert(player->alive && team->alive); // 存活的才能修改
     player->units += deltaUnits;
     player->tiles += deltaTiles;
     team->units += deltaUnits;
     team->tiles += deltaTiles;
+}
+
+void PlayerRegistry::markNotAlive(int playerID) {
+    Player* player = atPlayer(playerID);
+    Team* team = atTeam(player->teamID);
+    player->alive = false;
+    team->units -= player->units;
+    team->tiles -= player->tiles;
+    player->units = 0;
+    player->tiles = 0;
+    -- team->alivePlayers;
+    if(team->alivePlayers == 0) team->alive = false;
 }
 
 }

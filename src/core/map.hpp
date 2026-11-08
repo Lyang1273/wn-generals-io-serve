@@ -49,6 +49,10 @@ public:
     bool isInside(const Point &p) const;
 
     Tile* operator[](int x);
+
+    std::vector<Tile>& atTiles() {
+        return tiles;
+    } 
 };
 
 }

@@ -1,5 +1,6 @@
 #include "rule.hpp"
 #include "player.hpp"
+#include <cassert>
 
 namespace gen::core {
 
@@ -51,7 +52,40 @@ void Rule::applyMove(GameMap &map, PlayerRegistry &playerRegistry, const MoveOpe
 }
 
 void Rule::occupy(GameMap &map, PlayerRegistry &playerRegistry, Tile &destTile, int sourceID, int moveUnits) {
-    
+    assert(moveUnits > destTile.unit); // 打得过
+    // 更新目标状态
+    playerRegistry.updatePlayerState(destTile.owner, -destTile.unit, -1);
+    destTile.owner = sourceID;
+    destTile.unit = moveUnits - destTile.unit;
+    playerRegistry.updatePlayerState(sourceID, destTile.unit, 1); // 加上目标格子
+    if(destTile.terrain == Terrain::Capital) { // 是首都 击败该玩家
+        destTile.terrain = Terrain::City;
+        beatPlayer(map, playerRegistry, destTile.owner, sourceID);
+        return;
+    }
+}
+
+void Rule::beatPlayer(GameMap &map, PlayerRegistry &playerRegistry, int defeatenID, int sourceID) {
+    playerRegistry.markNotAlive(defeatenID); // 记录不存活并且清空单位和地块
+    int sumDeltaUnits = 0;
+    int sumDeltaTiles = 0;
+    for(auto &tile : map.atTiles()) {
+        if(tile.owner == defeatenID) {
+            tile.owner = sourceID; // 转换所有者
+            if(tile.terrain != Terrain::Capital) {
+                tile.unit /= 2; // 非首都保留一半
+            }
+            sumDeltaUnits += tile.unit;
+            ++ sumDeltaTiles;
+            if(tile.terrain == Terrain::Capital) {
+                // 在外面已经处理过了 理论上不执行
+                // 将敌方首都转换为自己的城市
+                tile.terrain = Terrain::City;
+            }
+        }
+    }
+    playerRegistry.updatePlayerState(sourceID, sumDeltaUnits, sumDeltaTiles);
+    // 加上单位和地块
 }
 
 }
