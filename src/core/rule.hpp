@@ -26,8 +26,6 @@ public:
     static void occupy(GameMap &map, PlayerRegistry &playerRegistry, Tile &destTile, int sourceID, int moveUnits); // 占领某个地块
 
     static void beatPlayer(GameMap &map, PlayerRegistry &playerRegistry, int sourceID, int defeatenID); // 击败玩家
-
-    static void 
 };
 
 // 将方向转换为坐标偏移量 
