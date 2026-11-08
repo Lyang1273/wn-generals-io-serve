@@ -12,14 +12,12 @@ namespace gen::core {
 
 struct Player {
     int playerID = 0; // 玩家ID
-    std::shared_ptr<Team> team; // 玩家所属队伍
+    int teamID = 0; // 队伍ID
     bool alive = true; // 存活状态
     int units = 0; // 兵力数量
     int tiles = 0; // 占领的地块数量
-    int citys = 0; // 占领的城市数量
-    Point capitalPos = Point(-1, -1); // 首都位置
 
-    Player(int playerID, Team* team): playerID(playerID), team(team) {}
+    Player(int playerID, int teamID): playerID(playerID), teamID(teamID) {}
 };
 
 struct Team {
@@ -27,8 +25,7 @@ struct Team {
     bool alive = true; // 队伍存活状态
     int units = 0; // 队伍总兵力数量
     int tiles = 0; // 队伍总占领地块数量
-    int citys = 0; // 队伍总占领城市数量
-    std::vector<std::shared_ptr<Player>> players; // 队伍中的玩家列表
+    std::vector<int> players; // 队伍中的玩家 ID
 
     Team(int teamID): teamID(teamID) {}
 };
@@ -41,11 +38,11 @@ private:
 
     bool isRegisteredMoveQueue = true; // 是否已经注册移动队列
 
-    std::vector<std::shared_ptr<Player>> players; // 全局玩家列表
+    std::vector<std::unique_ptr<Player>> players; // 全局玩家列表
 
-    std::vector<std::shared_ptr<Team>> teams; // 全局队伍列表
+    std::vector<std::unique_ptr<Team>> teams; // 全局队伍列表
 
-    std::queue<std::shared_ptr<Player>> moveQueue; // 移动优先级队列
+    std::queue<Player*> moveQueue; // 移动优先级队列
 public:
     PlayerRegistry() = default;
 
@@ -53,15 +50,7 @@ public:
 
     void registerMoveQueue(); // 构造移动优先级队列
 
-    const std::vector<std::shared_ptr<Player>>& getPlayers() const {
-        return players;
-    }
-
-    const std::vector<std::shared_ptr<Team>>& getTeams() const {
-        return teams;
-    }
-
-    const std::queue<std::shared_ptr<Player>>& getMoveQueue() const {
+    const std::queue<Player*>& getMoveQueue() const {
         return moveQueue;
     }
 
@@ -69,9 +58,11 @@ public:
 
     bool isSameTeam(int playerID1, int playerID2) const; // 判断两个玩家是否属于同一队伍
 
-    const std::shared_ptr<Player>& player(int playerID) const; // 获得该玩家
+    Player* atPlayer(int playerID) const; // 获得该玩家
 
-    const std::shared_ptr<Team>& team(int teamID) const; // 获得该小队
+    Team* atTeam(int teamID) const; // 获得该小队
+
+    void updatePlayerState(int playerID, int deltaUnits, int deltaTiles); // 更新玩家状态 加上或减去 units tiles 用正负号区分
 };
 
 }

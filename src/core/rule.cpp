@@ -16,7 +16,7 @@ bool Rule::isValidMove(const GameMap &map, const MoveOperation &op) {
     return true;
 }
 
-void Rule::applyMove(GameMap &map, const PlayerRegistry &playerRegistry, const MoveOperation &op) {
+void Rule::applyMove(GameMap &map, PlayerRegistry &playerRegistry, const MoveOperation &op) {
     if(!isValidMove(map, op)) return; // 无法移动
     Point dest = calcDestination(op.source, op.d); // 计算目标位置
     Tile& sourceTile = map.at(op.source);
@@ -29,15 +29,29 @@ void Rule::applyMove(GameMap &map, const PlayerRegistry &playerRegistry, const M
         sourceTile.unit -= moveUnits; // 减少源位置的兵力
         if(destTile.terrain != Terrain::Capital) {
             // 不为首都则所有者变为源位置所有者
+            playerRegistry.updatePlayerState(destTile.owner, -destTile.unit, -1);
             destTile.owner = sourceTile.owner;
+            playerRegistry.updatePlayerState(sourceTile.owner, destTile.unit, 1);
         }
     }
     else {
         // 中立或不同队伍
-        destTile.unit -= moveUnits;
         sourceTile.unit -= moveUnits;
-        
+        playerRegistry.updatePlayerState(sourceTile.owner, -moveUnits, 0);
+        if(moveUnits <= destTile.unit) {
+            // 打不过
+            destTile.unit -= moveUnits;
+            playerRegistry.updatePlayerState(destTile.owner, -moveUnits, 0);
+        }
+        else {
+            // 打得过
+            occupy(map, playerRegistry, destTile, sourceTile.owner, moveUnits);
+        }
     }
+}
+
+void Rule::occupy(GameMap &map, PlayerRegistry &playerRegistry, Tile &destTile, int sourceID, int moveUnits) {
+    
 }
 
 }

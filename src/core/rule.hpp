@@ -21,7 +21,9 @@ class Rule {
 public:
     static bool isValidMove(const GameMap &map, const MoveOperation &op); // 判断移动是否合法
 
-    static void applyMove(GameMap &map, const PlayerRegistry &playerRegistry, const MoveOperation &op); // 执行移动操作
+    static void applyMove(GameMap &map, PlayerRegistry &playerRegistry, const MoveOperation &op); // 执行移动操作
+
+    static void occupy(GameMap &map, PlayerRegistry &playerRegistry, Tile &destTile, int sourceID, int moveUnits); // 占领某个地块
 };
 
 // 将方向转换为坐标偏移量 
