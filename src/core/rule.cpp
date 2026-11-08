@@ -3,6 +3,7 @@
 #include <cassert>
 
 namespace gen::core {
+using std::vector;
 
 bool Rule::isValidMove(const GameMap &map, const MoveOperation &op) {
     if(op.d < 0 || op.d >= 4) return false; // 检查方向是否合法
@@ -43,7 +44,9 @@ void Rule::applyMove(GameMap &map, PlayerRegistry &playerRegistry, const MoveOpe
         if(moveUnits <= destTile.unit) {
             // 打不过
             destTile.unit -= moveUnits;
-            playerRegistry.updatePlayerState(destTile.owner, -moveUnits, 0);
+            if(!destTile.isNeutral()) {
+                playerRegistry.updatePlayerState(destTile.owner, -moveUnits, 0);
+            }
         }
         else {
             // 打得过
@@ -55,13 +58,17 @@ void Rule::applyMove(GameMap &map, PlayerRegistry &playerRegistry, const MoveOpe
 void Rule::occupy(GameMap &map, PlayerRegistry &playerRegistry, Tile &destTile, int sourceID, int moveUnits) {
     assert(moveUnits > destTile.unit); // 打得过
     // 更新目标状态
-    playerRegistry.updatePlayerState(destTile.owner, -destTile.unit, -1);
+    int originDestID = destTile.owner;
+    if(!destTile.isNeutral()) {
+        // 非中立修改状态
+        playerRegistry.updatePlayerState(destTile.owner, -destTile.unit, -1);
+    }
     destTile.owner = sourceID;
     destTile.unit = moveUnits - destTile.unit;
     playerRegistry.updatePlayerState(sourceID, destTile.unit, 1); // 加上目标格子
     if(destTile.terrain == Terrain::Capital) { // 是首都 击败该玩家
         destTile.terrain = Terrain::City;
-        beatPlayer(map, playerRegistry, destTile.owner, sourceID);
+        beatPlayer(map, playerRegistry, originDestID, sourceID);
         return;
     }
 }
@@ -74,8 +81,8 @@ void Rule::beatPlayer(GameMap &map, PlayerRegistry &playerRegistry, int defeaten
         if(tile.owner == defeatenID) {
             tile.owner = sourceID; // 转换所有者
             if(tile.terrain != Terrain::Capital) {
-                // 非首都保留一半加一
-                tile.unit = tile.unit / 2 + 1;
+                // 非首都保留一半上取整
+                tile.unit = (tile.unit + 1) / 2;
             }
             sumDeltaUnits += tile.unit;
             ++ sumDeltaTiles;
@@ -88,6 +95,33 @@ void Rule::beatPlayer(GameMap &map, PlayerRegistry &playerRegistry, int defeaten
     }
     playerRegistry.updatePlayerState(sourceID, sumDeltaUnits, sumDeltaTiles);
     // 加上单位和地块
+}
+
+void Rule::applyTurnPassage(GameMap &map, PlayerRegistry &playerRegistry, int currentTurn) {
+    int playerCount = playerRegistry.getPlayerCount();
+    vector<int> deltaUnits(playerCount, 0);
+    for(auto &tile : map.atTiles()) {
+        if(tile.isNeutral()) continue; // 跳过中立
+        assert(tile.owner >= 0 && tile.owner < playerCount); // 在合法范围内
+        if(tile.terrain == Terrain::Blank && currentTurn % 50 == 0) {
+            // 空地加兵
+            ++ tile.unit;
+            ++ deltaUnits[tile.owner];
+        }
+        else if((tile.terrain == Terrain::Capital || tile.terrain == Terrain::City) && currentTurn % 2 == 0) {
+            // 首都城市加兵
+            ++ tile.unit;
+            ++ deltaUnits[tile.owner];
+        }
+        else if(tile.terrain == Terrain::Swamp && tile.unit > 1) {
+            // 沼泽减兵
+            -- tile.unit;
+            -- deltaUnits[tile.owner];
+        }
+    }
+    for(int i = 0; i < playerCount; i ++) {
+        playerRegistry.updatePlayerState(i, deltaUnits[i], 0);
+    }
 }
 
 }

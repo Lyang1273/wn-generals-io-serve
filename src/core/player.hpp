@@ -11,8 +11,8 @@
 namespace gen::core {
 
 struct Player {
-    int playerID = 0; // 玩家ID
-    int teamID = 0; // 队伍ID
+    int playerID = 0; // 玩家ID 应从0开始编号
+    int teamID = 0; // 队伍ID 应从0开始编号
     bool alive = true; // 存活状态
     int units = 0; // 兵力数量
     int tiles = 0; // 占领的地块数量
@@ -53,6 +53,14 @@ public:
 
     const std::queue<Player*>& getMoveQueue() const {
         return moveQueue;
+    }
+
+    int getPlayerCount() const {
+        return playerCount;
+    }
+
+    int getTeamCount() const {
+        return teamCount;
     }
 
     void nextMoveQueue(); // 移动队列向后推迟 优先级最高的玩家变优先级最低
